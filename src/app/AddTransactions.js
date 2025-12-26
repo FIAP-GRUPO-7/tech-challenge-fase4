@@ -1,37 +1,29 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
-  Image,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View
 } from "react-native";
 
 import { useAuth } from "@hooks/useAuth";
+import { Header, BalanceSection, TransactionForm, ActionFooter } from '../presentation/components/organisms';
 import { colors, fontSize, radius, spacing } from "../presentation/styles/theme";
 
-import OcultarSaldoIcon from '../assets/images/ocultar-saldo-preto.png';
-import FileUploaderComponent from '../presentation/components/ui/FileUploaderComponent';
-
-import { makeGetBalanceUseCase } from "../main/factories/transactions/makeGetBalanceUseCase";
+import useBalance from '../presentation/hooks/useBalance';
 
 export default function AddTransaction() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams();
   const recipientFromParams = params.recipient;
 
-  const [balance, setBalance] = useState(0);
-  const [loadingBalance, setLoadingBalance] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
 
+  const { balance, loading: loadingBalance } = useBalance(user);
   const [numericValue, setNumericValue] = useState(0);
-  const [formattedValue, setFormattedValue] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
@@ -43,48 +35,12 @@ export default function AddTransaction() {
       Alert.alert("Erro", "Nenhum destinatário selecionado.");
       router.back();
     }
-  }, [recipientFromParams]);
+  }, [recipientFromParams, router]);
 
-  useEffect(() => {
-    async function loadBalance() {
-      if (!user?.uid) {
-        setLoadingBalance(false);
-        return;
-      }
+  // balance loading handled by useBalance
 
-      const getBalanceUseCase = makeGetBalanceUseCase();
-      const res = await getBalanceUseCase.execute(user.uid);
-
-      if (res.success) {
-        setBalance(Number(res.data?.saldo ?? 0));
-      } else {
-        setBalance(0);
-      }
-
-      setLoadingBalance(false);
-    }
-
-    loadBalance();
-  }, [user]);
-
-  const handleValueChange = (text) => {
-    const cleaned = text.replace(/\D/g, "");
-
-    if (cleaned === "") {
-      setNumericValue(0);
-      setFormattedValue("");
-      return;
-    }
-
-    const value = parseInt(cleaned, 10) / 100;
-    setNumericValue(value);
-
-    const formatted = new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-
-    setFormattedValue(formatted);
+  const handleValueChange = (num) => {
+    setNumericValue(num || 0);
   };
 
   const handleSaveTransaction = async () => {
@@ -100,13 +56,21 @@ export default function AddTransaction() {
 
     if (numericValue <= 0) {
       const msg = "Insira um valor válido.";
-      Platform.OS === "web" ? window.alert(msg) : Alert.alert("Erro", msg);
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Erro", msg);
+      }
       return;
     }
 
     if (numericValue > balance) {
       const msg = "O valor excede o saldo disponível.";
-      Platform.OS === "web" ? window.alert(msg) : Alert.alert("Saldo insuficiente", msg);
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Saldo insuficiente", msg);
+      }
       return;
     }
 
@@ -125,74 +89,17 @@ export default function AddTransaction() {
   return (
     <View style={styles.container}>
 
-      {/*  HEADER*/}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>‹</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nova Transferência</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header user={user} menuVisible={menuVisible} setMenuVisible={setMenuVisible} logout={logout} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <BalanceSection balance={balance} loading={loadingBalance} showBalance={showBalance} setShowBalance={setShowBalance} />
 
-        {/* SALDO */}
-        <View style={styles.balanceContainer}>
-          <Text style={styles.balanceLabel}>Saldo Disponível:</Text>
-
-          {loadingBalance ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.balanceValue}>
-                {showBalance
-                  ? `R$ ${balance.toFixed(2).replace(".", ",")}`
-                  : "●●●●●●"}
-              </Text>
-
-              <TouchableOpacity onPress={() => setShowBalance((s) => !s)}>
-                <Image source={OcultarSaldoIcon} style={styles.eyeIcon} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* FORM */}
         <View style={styles.formContainer}>
-          <Text style={styles.recipientLabel}>Transferindo para:</Text>
-          <Text style={styles.recipientName}>{recipientFromParams}</Text>
-
-          <Text style={styles.label}>Valor</Text>
-          <TextInput
-            placeholder="R$ 0,00"
-            value={formattedValue}
-            onChangeText={handleValueChange}
-            keyboardType="numeric"
-            style={styles.valueInput}
-            placeholderTextColor={colors.text.muted}
-          />
-
-          <View style={{ marginTop: spacing.xl }}>
-            {user && (
-              <FileUploaderComponent
-                user={user}
-                onUploadSuccess={setAttachmentUrl}
-              />
-            )}
-          </View>
+          <TransactionForm recipient={recipientFromParams} user={user} value={numericValue} onChangeValue={handleValueChange} onUploadSuccess={setAttachmentUrl} />
         </View>
       </ScrollView>
 
-      {/* BOTÃO */}
-      <View style={styles.footer}>
-        {loading ? (
-          <ActivityIndicator size="large" color={colors.secondary} />
-        ) : (
-          <TouchableOpacity style={styles.button} onPress={handleSaveTransaction}>
-            <Text style={styles.buttonText}>Transferir agora</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <ActionFooter loading={loading} onPress={handleSaveTransaction} title="Transferir agora" />
     </View>
   );
 }

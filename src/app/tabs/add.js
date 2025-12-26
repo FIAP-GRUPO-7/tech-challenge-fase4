@@ -1,29 +1,21 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
-  FlatList,
-  Image,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
 
 import { useAuth } from "../../presentation/hooks/useAuth";
-import { makeListContactsUseCase } from "../../main/factories/contacts/makeListContactsUseCase";
+import useContacts from "../../presentation/hooks/useContacts";
 
-import AvatarImg from "../../assets/images/Avatar.png";
+import { Header, ContactsList } from "../../presentation/components/organisms";
+import { RecipientInput } from "../../presentation/components/molecules";
 import { styles as homeStyles } from "../../presentation/styles/HomeStyles";
 import { colors, fontSize, radius, spacing } from "../../presentation/styles/theme";
 
-const extractNameFromEmail = (email) => {
-  if (!email) return "";
-  const namePart = email.split("@")[0];
-  return namePart.charAt(0).toUpperCase() + namePart.slice(1);
-};
 
 export default function Transfer() {
   const { user, logout } = useAuth();
@@ -33,31 +25,7 @@ export default function Transfer() {
   const [recipient, setRecipient] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
 
-  const [contacts, setContacts] = useState([]);
-  const [loadingContacts, setLoadingContacts] = useState(true);
-
-  const listContactsUseCase = makeListContactsUseCase();
-
-  useEffect(() => {
-    if (!user?.uid) {
-      setLoadingContacts(false);
-      return;
-    }
-
-    async function load() {
-      const result = await listContactsUseCase.execute(user.uid);
-
-      if (!result.success) {
-        console.error(result.error);
-      } else {
-        setContacts(result.data);
-      }
-
-      setLoadingContacts(false);
-    }
-
-    load();
-  }, [user]);
+  const { contacts, loadingContacts } = useContacts(user);
 
   const handleNextStep = () => {
     const finalRecipient = selectedContact || recipient;
@@ -73,50 +41,11 @@ export default function Transfer() {
     });
   };
 
-  const renderContact = ({ item }) => (
-    <TouchableOpacity
-      style={styles.contactRow}
-      onPress={() => setSelectedContact(item.name)}
-    >
-      <View style={styles.contactInitialCircle}>
-        <Text style={styles.contactInitialText}>{item.initials}</Text>
-      </View>
-      <Text style={styles.contactName}>{item.name}</Text>
-    </TouchableOpacity>
-  );
+  
 
   return (
     <View style={homeStyles.container}>
-      {menuVisible && (
-        <View style={homeStyles.dropdownMenu}>
-          <TouchableOpacity
-            style={homeStyles.dropdownClose}
-            onPress={() => setMenuVisible(false)}
-          >
-            <Text style={{ color: colors.text.white, fontSize: 18 }}>✕</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={homeStyles.dropdownLogout}
-            onPress={logout}
-          >
-            <Text style={homeStyles.dropdownLogoutText}>Sair</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View style={homeStyles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Image source={AvatarImg} style={homeStyles.avatar} />
-          <Text style={homeStyles.headerText}>
-            Olá, {extractNameFromEmail(user?.email)}
-          </Text>
-        </View>
-
-        <TouchableOpacity onPress={() => setMenuVisible((p) => !p)}>
-          <Text style={{ color: colors.text.black, fontSize: 22 }}>☰</Text>
-        </TouchableOpacity>
-      </View>
+      <Header user={user} menuVisible={menuVisible} setMenuVisible={setMenuVisible} logout={logout} />
 
       <View style={styles.card}>
         <TouchableOpacity
@@ -128,31 +57,19 @@ export default function Transfer() {
 
         <Text style={styles.title}>Para quem você quer transferir?</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Nome ou chave Pix"
-          placeholderTextColor={colors.text.muted}
+        <RecipientInput
           value={selectedContact || recipient}
-          onChangeText={(t) => {
+          onChange={(t) => {
             setRecipient(t);
             setSelectedContact(null);
           }}
+          contacts={contacts}
+          style={styles.input}
         />
 
         <Text style={styles.subtitle}>Transferências recentes</Text>
 
-        {loadingContacts ? (
-          <ActivityIndicator size="large" color={colors.secondary} />
-        ) : (
-          <FlatList
-            data={contacts}
-            renderItem={renderContact}
-            keyExtractor={(i) => i.id}
-            ListEmptyComponent={
-              <Text style={styles.emptyListText}>Nenhum contato salvo.</Text>
-            }
-          />
-        )}
+        <ContactsList contacts={contacts} loading={loadingContacts} onSelect={(name) => setSelectedContact(name)} />
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.button} onPress={handleNextStep}>
