@@ -27,6 +27,7 @@ import { makeGetBalanceUseCase } from "../../main/factories/transactions/makeGet
 import { makeCreateInitialDepositUseCase } from "../../main/factories/transactions/makeCreateInitialDepositUseCase";
 
 import { LineChart } from "react-native-chart-kit";
+import { TransactionItem } from "../../presentation/components/organisms";
 
 const extractNameFromEmail = (email) => {
   if (!email) return "";
@@ -161,27 +162,14 @@ export default function Home() {
     [router]
   );
 
-  const renderTx = ({ item }) => {
-    const value = item.value || 0;
-    const isExpense = value < 0;
-
-    const dateStr = new Date(item.createdAtMillis).toLocaleDateString("pt-BR");
-
-    return (
-      <Animated.View style={styles.transactionRow} entering={FadeInRight.duration(400)}>
-        <Text style={styles.transactionMeta}>{dateStr}</Text>
-        <Text style={styles.transactionDesc}>{item.type || item.recipient || "—"}</Text>
-        <Text
-          style={[
-            styles.transactionValue,
-            { color: isExpense ? colors.danger : colors.accent }
-          ]}
-        >
-          {`${isExpense ? "-" : "+"}R$ ${Math.abs(value).toFixed(2)}`}
-        </Text>
+  const renderTx = useCallback(
+    ({ item }) => (
+      <Animated.View entering={FadeInRight.duration(400)}>
+        <TransactionItem item={item} />
       </Animated.View>
-    );
-  };
+    ),
+    []
+  );
 
   const chartConfig = {
     backgroundColor: colors.background,

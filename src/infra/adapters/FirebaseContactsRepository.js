@@ -18,7 +18,7 @@ export class FirebaseContactsRepository {
       }));
 
       return { success: true, data: contacts };
-    } catch (error) {
+    } catch (_error) {
       return { success: false, error: "Erro ao carregar contatos." };
     }
   }
@@ -34,7 +34,7 @@ export class FirebaseContactsRepository {
       const snap = await getDocs(q);
 
       return { success: true, data: { exists: !snap.empty } };
-    } catch (error) {
+    } catch (_error) {
       return { success: false, error: "Erro ao buscar contato." };
     }
   }
@@ -48,7 +48,7 @@ export class FirebaseContactsRepository {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (_error) {
       return { success: false, error: "Erro ao criar contato." };
     }
   }

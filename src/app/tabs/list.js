@@ -1,11 +1,10 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
+// DateTimePicker unused for now
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,8 +20,7 @@ import { colors, fontSize, radius, spacing } from "../../presentation/styles/the
 
 import { makeWatchTransactionsUseCase } from "../../main/factories/transactions/makeWatchTransactionsUseCase";
 
-const CATEGORIAS = ["Todos", "Compras", "Salário", "Transporte", "Transferência", "Depósito"];
-const TIPOS = ["Todos", "Entradas", "Saídas"];
+// category and type filters not used yet
 
 export default function Transactions() {
   useAuthGuard();
@@ -32,20 +30,13 @@ export default function Transactions() {
   const [allTransactions, setAllTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
-  const [selectedType, setSelectedType] = useState("Todos");
+  // these states are reserved for future filter UI
+  const [searchQuery] = useState("");
+  const [selectedDate] = useState(null);
+  const [selectedCategory] = useState("Todos");
+  const [selectedType] = useState("Todos");
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [categoryDropdownVisible, setCategoryDropdownVisible] = useState(false);
-  const [typeDropdownVisible, setTypeDropdownVisible] = useState(false);
-
-  const [categoryButtonLayout, setCategoryButtonLayout] = useState(null);
-  const [typeButtonLayout, setTypeButtonLayout] = useState(null);
-
-  const categoryButtonRef = useRef(null);
-  const typeButtonRef = useRef(null);
+  // UI controls for filters are not implemented yet
 
   const extractNameFromEmail = (email) => {
     if (!email) return "";

@@ -1,6 +1,6 @@
-import { getDocs } from "firebase/firestore";
 import { db } from "@core/config/firebaseConfig";
 import {
+  getDocs,
   collection,
   addDoc,
   doc,
@@ -10,7 +10,7 @@ import {
   where,
   orderBy,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
 } from "firebase/firestore";
 
 export class FirebaseTransactionRepository {

@@ -17,7 +17,7 @@ import { useAuth } from "@hooks/useAuth";
 import { colors, fontSize, radius, spacing } from "../presentation/styles/theme";
 
 import OcultarSaldoIcon from '../assets/images/ocultar-saldo-preto.png';
-import FileUploaderComponent from '../presentation/components/ui/FileUploaderComponent';
+import { FileUploader } from '../presentation/components/molecules';
 
 import { makeGetBalanceUseCase } from "../main/factories/transactions/makeGetBalanceUseCase";
 
@@ -43,7 +43,7 @@ export default function AddTransaction() {
       Alert.alert("Erro", "Nenhum destinatário selecionado.");
       router.back();
     }
-  }, [recipientFromParams]);
+  }, [recipientFromParams, router]);
 
   useEffect(() => {
     async function loadBalance() {
@@ -100,13 +100,21 @@ export default function AddTransaction() {
 
     if (numericValue <= 0) {
       const msg = "Insira um valor válido.";
-      Platform.OS === "web" ? window.alert(msg) : Alert.alert("Erro", msg);
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Erro", msg);
+      }
       return;
     }
 
     if (numericValue > balance) {
       const msg = "O valor excede o saldo disponível.";
-      Platform.OS === "web" ? window.alert(msg) : Alert.alert("Saldo insuficiente", msg);
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Saldo insuficiente", msg);
+      }
       return;
     }
 
@@ -174,7 +182,7 @@ export default function AddTransaction() {
 
           <View style={{ marginTop: spacing.xl }}>
             {user && (
-              <FileUploaderComponent
+              <FileUploader
                 user={user}
                 onUploadSuccess={setAttachmentUrl}
               />

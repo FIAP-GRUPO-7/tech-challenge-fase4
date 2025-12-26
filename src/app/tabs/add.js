@@ -36,8 +36,6 @@ export default function Transfer() {
   const [contacts, setContacts] = useState([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
 
-  const listContactsUseCase = makeListContactsUseCase();
-
   useEffect(() => {
     if (!user?.uid) {
       setLoadingContacts(false);
@@ -45,6 +43,7 @@ export default function Transfer() {
     }
 
     async function load() {
+      const listContactsUseCase = makeListContactsUseCase();
       const result = await listContactsUseCase.execute(user.uid);
 
       if (!result.success) {

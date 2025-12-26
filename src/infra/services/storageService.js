@@ -1,7 +1,6 @@
-import { ref } from "firebase/storage";
+import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import { storage } from "@core/config/firebaseConfig";
 import * as FileSystem from "expo-file-system";
-import { getDownloadURL, uploadBytesResumable } from "firebase/storage";
 
 async function _upload(storagePath, blob) {
   try {

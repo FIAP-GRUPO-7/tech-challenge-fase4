@@ -8,7 +8,6 @@ import ListIcon from '../../assets/images/Icone Listagens.png';
 import AddIcon from '../../assets/images/Icone transferir.png';
 const BAR_HEIGHT = 60;
 const PADDING_BOTTOM = 20;
-const FIXED_WIDTH_CONTAINER = 400;
 
 export default function TabsLayout() {
   return (

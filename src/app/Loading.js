@@ -19,7 +19,6 @@ export default function LoadingScreen() {
   const [executed, setExecuted] = useState(false);
 
   const progress = useRef(new Animated.Value(0)).current;
-  const createTransferUseCase = makeCreateTransferUseCase();
 
   useEffect(() => {
     if (!authLoading) {
@@ -29,7 +28,7 @@ export default function LoadingScreen() {
         useNativeDriver: false,
       }).start();
     }
-  }, [authLoading]);
+  }, [authLoading, progress]);
 
   useEffect(() => {
     if (authLoading || executed) return;
@@ -38,6 +37,7 @@ export default function LoadingScreen() {
     setExecuted(true); // ← impede transferências duplicadas
 
     const executeTransfer = async () => {
+      const createTransferUseCase = makeCreateTransferUseCase();
       try {
         const result = await createTransferUseCase.execute({
           userId: user.uid,
@@ -70,7 +70,7 @@ export default function LoadingScreen() {
 
     setTimeout(() => executeTransfer(), 2000);
 
-  }, [authLoading, user, executed]);
+  }, [authLoading, user, executed, recipient, value, attachmentUrl, router]);
 
   const progressBarWidth = progress.interpolate({
     inputRange: [0, 1],

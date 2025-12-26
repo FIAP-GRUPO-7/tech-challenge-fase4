@@ -1,7 +1,11 @@
-import { FirebaseContactRepository } from "../../../infra/adapters/FirebaseContactRepository";
-import { CreateContactUseCase } from "../../../domain/usecases/CreateContact";
+import { FirebaseContactsRepository } from "../../../infra/adapters/FirebaseContactsRepository";
 
 export function makeCreateContactUseCase() {
-  const repository = new FirebaseContactRepository();
-  return new CreateContactUseCase(repository);
+  const repository = new FirebaseContactsRepository();
+
+  return {
+    async execute(userId, name) {
+      return repository.createContact({ userId, name });
+    },
+  };
 }

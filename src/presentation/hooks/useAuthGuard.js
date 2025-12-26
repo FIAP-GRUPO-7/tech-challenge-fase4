@@ -31,7 +31,7 @@ export function useAuthGuard() {
       router.replace("/tabs/Home");
       return;
     }
-  }, [user, loading, segments]);
+  }, [user, loading, segments, router]);
 
   return { user, loading, isAuthenticated: !!user };
 }
