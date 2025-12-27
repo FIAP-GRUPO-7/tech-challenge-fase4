@@ -9,7 +9,6 @@ export async function pickFilesMobile() {
 
     if (result.canceled) return [];
 
-    // expo-document-picker may return a single asset or assets array depending on sdk
     return result.assets || (result.name ? [result] : []);
   } catch (err) {
     console.error('pickFilesMobile error', err);

@@ -34,7 +34,7 @@ export default function LoadingScreen() {
     if (authLoading || executed) return;
     if (!user) return;
 
-    setExecuted(true); // ← impede transferências duplicadas
+    setExecuted(true);
 
     const executeTransfer = async () => {
       const createTransferUseCase = makeCreateTransferUseCase();

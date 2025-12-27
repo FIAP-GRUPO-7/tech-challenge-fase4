@@ -6,10 +6,16 @@ function TransactionItemComponent({ item }) {
   const value = item.value || 0;
   const isExpense = value < 0;
 
-  const dateStr = new Date(item.createdAtMillis).toLocaleDateString('pt-BR');
+  const createdMs = item.createdAt || item.createdAtMillis || null;
+  const dateStr = createdMs ? new Date(createdMs).toLocaleDateString('pt-BR') : '—';
 
   return (
-    <View style={styles.transactionRow}>
+    <View
+      style={styles.transactionRow}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={`Transação ${item.type || item.recipient || ''} em ${dateStr} valor ${value}`}
+    >
       <Text style={styles.transactionText}>{dateStr}</Text>
       <Text style={styles.transactionText}>{item.type || item.recipient || '—'}</Text>
       <Text style={isExpense ? styles.transactionValueNegative : styles.transactionValuePositive}>
@@ -20,7 +26,11 @@ function TransactionItemComponent({ item }) {
 }
 
 const areEqual = (prevProps, nextProps) => {
-  return prevProps.item?.id === nextProps.item?.id && prevProps.item?.value === nextProps.item?.value && prevProps.item?.createdAtMillis === nextProps.item?.createdAtMillis;
+  const prev = prevProps.item || {};
+  const next = nextProps.item || {};
+  const prevCreated = prev.createdAt || prev.createdAtMillis;
+  const nextCreated = next.createdAt || next.createdAtMillis;
+  return prev.id === next.id && prev.value === next.value && prevCreated === nextCreated;
 };
 
 export const TransactionItem = React.memo(TransactionItemComponent, areEqual);

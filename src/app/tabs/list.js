@@ -1,140 +1,63 @@
-// DateTimePicker unused for now
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useAuth } from "../../presentation/hooks/useAuth";
 import { useAuthGuard } from "../../presentation/hooks/useAuthGuard";
 
-import AvatarImg from "../../assets/images/Avatar.png";
 import { styles as homeStyles } from "../../presentation/styles/HomeStyles";
 import { colors, fontSize, radius, spacing } from "../../presentation/styles/theme";
+import { Header, TransactionsList } from "../../presentation/components/organisms";
 
-import { makeWatchTransactionsUseCase } from "../../main/factories/transactions/makeWatchTransactionsUseCase";
-
-// category and type filters not used yet
+import useTransactions from "../../presentation/hooks/useTransactions";
 
 export default function Transactions() {
   useAuthGuard();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
-  const [allTransactions, setAllTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // these states are reserved for future filter UI
+  const [menuVisible, setMenuVisible] = useState(false);
+  const { transactions: allTransactions, loading } = useTransactions(user);
   const [searchQuery] = useState("");
-  const [selectedDate] = useState(null);
-  const [selectedCategory] = useState("Todos");
   const [selectedType] = useState("Todos");
+  const [selectedCategory] = useState("Todos");
+  const [selectedDate] = useState(null);
 
-  // UI controls for filters are not implemented yet
-
-  const extractNameFromEmail = (email) => {
-    if (!email) return "";
-    const namePart = email.split("@")[0];
-    return namePart.charAt(0).toUpperCase() + namePart.slice(1);
-  };
-
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const watchTransactionsUseCase = makeWatchTransactionsUseCase();
-
-    const unsubscribe = watchTransactionsUseCase.execute(
-      user.uid,
-      (transactions) => {
-        setAllTransactions(transactions);
-        setLoading(false);
-      },
-      (errorMsg) => {
-        console.error("Erro ao carregar transações:", errorMsg);
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
+  
 
   const filteredTransactions = useMemo(() => {
     let tx = [...allTransactions];
 
     if (searchQuery) {
-      tx = tx.filter(t =>
-        (t.type || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (t.recipient || "").toLowerCase().includes(searchQuery.toLowerCase())
+      tx = tx.filter(
+        (t) =>
+          (t.type || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (t.recipient || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    if (selectedType === "Entradas") tx = tx.filter(t => t.value >= 0);
-    if (selectedType === "Saídas") tx = tx.filter(t => t.value < 0);
+    if (selectedType === "Entradas") tx = tx.filter((t) => t.value >= 0);
+    if (selectedType === "Saídas") tx = tx.filter((t) => t.value < 0);
 
-    if (selectedCategory !== "Todos") tx = tx.filter(t => t.type === selectedCategory);
+    if (selectedCategory !== "Todos") tx = tx.filter((t) => t.type === selectedCategory);
 
     if (selectedDate) {
-      tx = tx.filter(t =>
-        t.createdAt &&
-        new Date(t.createdAt).toLocaleDateString("pt-BR") ===
-        selectedDate.toLocaleDateString("pt-BR")
-      );
+      tx = tx.filter((t) => {
+        const createdMs = t.createdAt || t.createdAtMillis || null;
+        if (!createdMs) return false;
+        return new Date(createdMs).toLocaleDateString("pt-BR") ===
+          selectedDate.toLocaleDateString("pt-BR");
+      });
     }
 
     return tx;
   }, [allTransactions, searchQuery, selectedType, selectedCategory, selectedDate]);
 
-  const renderTx = ({ item }) => {
-    const isExpense = item.value < 0;
-    const valueColor = isExpense ? colors.danger : colors.accent;
-
-    const formattedValue =
-      `${isExpense ? "-" : "+"}R$ ${Math.abs(item.value).toFixed(2)}`;
-
-    const formattedDate = item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString("pt-BR")
-      : "—";
-
-    return (
-      <View style={styles.transactionRow}>
-        <Text style={styles.tableCell}>{formattedDate}</Text>
-        <Text style={styles.tableCell}>{item.type || "—"}</Text>
-        <Text style={[styles.tableCell, { color: valueColor, fontWeight: "bold" }]}>
-          {formattedValue}
-        </Text>
-      </View>
-    );
-  };
-
-  const ListHeader = () => (
-    <View style={styles.listHeader}>
-      <Text style={styles.listHeaderText}>Data</Text>
-      <Text style={styles.listHeaderText}>Tipo</Text>
-      <Text style={styles.listHeaderText}>Valor</Text>
-    </View>
-  );
-
   return (
     <View style={homeStyles.container}>
 
       {/* HEADER */}
-      <View style={homeStyles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Image source={AvatarImg} style={homeStyles.avatar} />
-          <Text style={homeStyles.headerText}>
-            Olá, {extractNameFromEmail(user?.email)}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={() => { }}>
-          <Text style={{ color: colors.text.black, fontSize: 22 }}>☰</Text>
-        </TouchableOpacity>
-      </View>
+      <Header user={user} menuVisible={menuVisible} setMenuVisible={setMenuVisible} logout={logout} />
 
       {/* CONTEÚDO */}
       <View style={styles.content}>
@@ -154,22 +77,7 @@ export default function Transactions() {
         </View>
 
         {/* LISTAGEM */}
-        {loading ? (
-          <ActivityIndicator style={{ marginTop: 50 }} size="large" color={colors.secondary} />
-        ) : (
-          <FlatList
-            data={filteredTransactions}
-            keyExtractor={(t) => t.id}
-            renderItem={renderTx}
-            ListHeaderComponent={ListHeader}
-            ListEmptyComponent={
-              <Text style={{ textAlign: "center", marginTop: 50 }}>
-                Nenhuma transação encontrada
-              </Text>
-            }
-            contentContainerStyle={{ paddingBottom: 150 }}
-          />
-        )}
+        <TransactionsList transactions={filteredTransactions} loading={loading} />
       </View>
     </View>
   );

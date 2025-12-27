@@ -1,20 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View
 } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
 import { useAuth } from '../presentation/hooks/useAuth';
-import ConfirmationIcon from '../assets/images/Confirmation icon.png';
-import ComprovanteIcon from '../assets/images/Icone de Comprovante.png';
 import { colors, fontSize, radius, spacing } from '../presentation/styles/theme';
+import { Header, CloseButton, ReceiptCard, ReceiptActionFooter } from '../presentation/components/organisms';
 
 import { makeUploadReceiptUseCase } from '../main/factories/receipts/makeUploadReceiptUseCase';
 
@@ -148,62 +144,12 @@ export default function Comprovante() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
-        {/* Botão fechar */}
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => router.replace('/tabs/Home')}
-        >
-          <Text style={styles.closeButtonText}>×</Text>
-        </TouchableOpacity>
+        <CloseButton style={styles.closeButton} onPress={() => router.replace('/tabs/Home')} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Image source={ConfirmationIcon} style={styles.confirmationIcon} />
-          <Text style={styles.successTitle}>Transferência concluída</Text>
-        </View>
-
-        {/* Card principal */}
-        <View style={styles.receiptCard}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Valor</Text>
-            <Text style={styles.valueText}>
-              R$ {numericValue.toFixed(2).replace('.', ',')}
-            </Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Recebedor</Text>
-            <Text style={styles.recipientName}>{recipient}</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Data e hora</Text>
-            <Text style={styles.dateText}>{formattedDate}</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>ID da Transação</Text>
-            <Text style={styles.detailsText}>{transactionId}</Text>
-          </View>
-        </View>
+        <ReceiptCard numericValue={numericValue} recipient={recipient} formattedDate={formattedDate} transactionId={transactionId} />
       </ScrollView>
-
-      {/* Botão final */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={styles.shareButton}
-          onPress={handleGenerateAndSavePDF}
-        >
-          <Image source={ComprovanteIcon} style={styles.shareIcon} />
-          <Text style={styles.shareButtonText}>Visualizar / Salvar PDF</Text>
-        </TouchableOpacity>
-      </View>
+      
+      <ReceiptActionFooter onPress={handleGenerateAndSavePDF} />
     </View>
   );
 }

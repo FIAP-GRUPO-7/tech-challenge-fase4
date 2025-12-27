@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { styles } from "@presentation/styles/LoginStyles";
 import { makeLoginUseCase } from "main/factories/auth/makeLoginUseCase";
 import { makeRegisterUserUseCase } from "main/factories/auth/makeRegisterUserUseCase";
+import Input from "@presentation/components/atoms/Input";
+import Button from "@presentation/components/atoms/Button";
+import { PasswordInput } from "@presentation/components/molecules";
 
 
 export default function Login() {
@@ -66,65 +69,28 @@ export default function Login() {
       </Text>
 
       {isSigningUp && (
-        <TextInput
-          placeholder="Nome Completo"
-          value={fullName}
-          onChangeText={setFullName}
-          style={styles.input}
-        />
+        <Input label="Nome Completo" placeholder="Nome Completo" value={fullName} onChangeText={setFullName} accessibilityLabel="Nome completo" />
       )}
 
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+      <Input label="Email" placeholder="Email" value={email} onChangeText={setEmail} accessibilityLabel="Endereço de email" autoCapitalize="none" keyboardType="email-address" />
 
-      <TextInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
+      <PasswordInput value={password} onChangeText={setPassword} accessibilityLabel="Senha" />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#2563EB" style={styles.loader} />
+        <Text style={styles.loader}>Carregando...</Text>
       ) : (
         <>
           {isSigningUp ? (
             <>
-              <TouchableOpacity
-                onPress={() => submit("signup")}
-                style={[styles.button, styles.signupButton]}
-              >
-                <Text style={styles.buttonText}>Confirmar Cadastro</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => setIsSigningUp(false)}>
-                <Text style={styles.linkText}>Voltar para o login</Text>
-              </TouchableOpacity>
+              <Button title="Confirmar Cadastro" onPress={() => submit("signup")} accessibilityLabel="Confirmar cadastro" />
+              <Button title="Voltar para o login" onPress={() => setIsSigningUp(false)} className="mt-3 bg-gray-200" accessibilityLabel="Voltar para o login" />
             </>
           ) : (
             <>
-              <TouchableOpacity
-                onPress={() => submit("login")}
-                style={[styles.button, styles.loginButton]}
-              >
-                <Text style={styles.buttonText}>Entrar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setIsSigningUp(true)}
-                style={[styles.button, styles.signupButton]}
-              >
-                <Text style={styles.buttonText}>Criar Conta</Text>
-              </TouchableOpacity>
+              <Button title="Entrar" onPress={() => submit("login")} accessibilityLabel="Entrar" />
+              <Button title="Criar Conta" onPress={() => setIsSigningUp(true)} className="mt-3 bg-gray-200" accessibilityLabel="Criar conta" />
             </>
           )}
         </>
