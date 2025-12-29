@@ -26,7 +26,7 @@ export default function Login() {
     }
 
     if (!email || !password) {
-      setError("Por favor, preencha todos os campos.");
+      setError("Por favor, preencha email e senha.");
       return false;
     }
 
