@@ -1,13 +1,9 @@
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useState, useMemo } from "react";
-import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { styles } from "@presentation/styles/LoginStyles";
 import { makeLoginUseCase } from "main/factories/auth/makeLoginUseCase";
 import { makeRegisterUserUseCase } from "main/factories/auth/makeRegisterUserUseCase";
-import Input from "@presentation/components/atoms/Input";
-import Button from "@presentation/components/atoms/Button";
-import { PasswordInput } from "@presentation/components/molecules";
-
 
 export default function Login() {
   const router = useRouter();
@@ -23,15 +19,17 @@ export default function Login() {
   const loginUseCase = useMemo(() => makeLoginUseCase(), []);
   const registerUseCase = useMemo(() => makeRegisterUserUseCase(), []);
 
-  const validateFields = () => {
+  function validateFields() {
     if (isSigningUp && !fullName.trim()) {
       setError("Por favor, preencha o nome completo.");
       return false;
     }
-    if (!email.trim() || !password.trim()) {
-      setError("Por favor, preencha email e senha.");
+
+    if (!email || !password) {
+      setError("Por favor, preencha todos os campos.");
       return false;
     }
+
     if (password.length < 6) {
       setError("A senha deve ter pelo menos 6 caracteres.");
       return false;
@@ -39,9 +37,9 @@ export default function Login() {
 
     setError("");
     return true;
-  };
+  }
 
-  const submit = async (action) => {
+  async function submit(action) {
     if (!validateFields()) return;
 
     setLoading(true);
@@ -59,40 +57,75 @@ export default function Login() {
     }
 
     setLoading(false);
-  };
+  }
+
+  function handleSubmit() {
+    if (isSigningUp) {
+      submit("signup");
+    } else {
+      submit("login");
+    }
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isSigningUp ? "Criar Conta" : "Login"}</Text>
+      <Text style={styles.title}>
+        {isSigningUp ? "Criar conta" : "Entrar"}
+      </Text>
+
       <Text style={styles.subtitle}>
         {isSigningUp ? "Crie uma nova conta" : "Acesse sua conta bancária"}
       </Text>
 
       {isSigningUp && (
-        <Input label="Nome Completo" placeholder="Nome Completo" value={fullName} onChangeText={setFullName} accessibilityLabel="Nome completo" />
+        <TextInput
+          value={fullName}
+          onChangeText={setFullName}
+          placeholder="Nome completo"
+          style={styles.input}
+        />
       )}
 
-      <Input label="Email" placeholder="Email" value={email} onChangeText={setEmail} accessibilityLabel="Endereço de email" autoCapitalize="none" keyboardType="email-address" />
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="E-mail"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        style={styles.input}
+      />
 
-      <PasswordInput value={password} onChangeText={setPassword} accessibilityLabel="Senha" />
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Senha"
+        secureTextEntry
+        style={styles.input}
+      />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       {loading ? (
-        <Text style={styles.loader}>Carregando...</Text>
+        <ActivityIndicator size="large" style={styles.loader} />
       ) : (
         <>
-          {isSigningUp ? (
-            <>
-              <Button title="Confirmar Cadastro" onPress={() => submit("signup")} accessibilityLabel="Confirmar cadastro" />
-              <Button title="Voltar para o login" onPress={() => setIsSigningUp(false)} className="mt-3 bg-gray-200" accessibilityLabel="Voltar para o login" />
-            </>
-          ) : (
-            <>
-              <Button title="Entrar" onPress={() => submit("login")} accessibilityLabel="Entrar" />
-              <Button title="Criar Conta" onPress={() => setIsSigningUp(true)} className="mt-3 bg-gray-200" accessibilityLabel="Criar conta" />
-            </>
-          )}
+          <TouchableOpacity
+            style={[styles.button, styles.loginButton]}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.buttonText}>
+              {isSigningUp ? "Confirmar cadastro" : "Entrar"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.signupButton]}
+            onPress={() => setIsSigningUp((prev) => !prev)}
+          >
+            <Text style={styles.buttonText}>
+              {isSigningUp ? "Voltar para login" : "Criar conta"}
+            </Text>
+          </TouchableOpacity>
         </>
       )}
     </View>
